@@ -1,0 +1,39 @@
+.lightBackGroundBody {
+    background-color: lightgrey;
+}
+
+body {
+    /*width: 100%;*/
+    height: 100%;
+}
+
+.main {
+    padding: 5px 8%;
+    width: 90%;
+    height: 100%;
+    margin: 5% auto;
+    box-sizing: border-box;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.47);
+}
+
+a {
+    display: block;
+    width: auto;
+    padding: 10px 0;
+    text-decoration: none;
+    color: #1565c0  ;
+}
+
+a:hover, a:active {
+    color: #FF0000 ;
+    /*text-shadow: 1px 1px 1px #bbbbbb;*/
+}
+
+.introduction {
+    list-style-type: circle;
+}
+
+.introduction span{
+    color: #9e9e9e;
+}
