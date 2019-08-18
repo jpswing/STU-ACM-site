@@ -2562,7 +2562,7 @@ set showmatch " show match braces
 set matchtime=3 " time for vim to wait for showmatch
 set ruler
 
-nnoremap <F4> :w <CR> :!g++ % -o %< --std=c++11 -Wall -Wshadow -g -fsanitize=address -fsanitize=undefined && for i in ./in*; do echo $i; ./%< < $i; done <CR>
+nnoremap <F4> :w <CR> :!g++ % -o %< --std=c++14 -Wall -Wshadow -g -fsanitize=address -fsanitize=undefined && for i in ./in*; do echo $i; ./%< < $i; done <CR>
 ```
 
 #### debug template
@@ -2570,7 +2570,8 @@ nnoremap <F4> :w <CR> :!g++ % -o %< --std=c++11 -Wall -Wshadow -g -fsanitize=add
 ```c++
 #ifdef LOCAL
 template <typename T>
-auto is_printable_impl(int) -> decltype(cout << declval<T &>(), std::true_type{});
+auto is_printable_impl(int)
+    -> decltype(cout << declval<T &>(), std::true_type{});
 template <typename T>
 std::false_type is_printable_impl(...);
 template <typename T>
@@ -2578,51 +2579,63 @@ using is_printable = decltype(is_printable_impl<T>(0));
 
 template <typename Tuple, size_t N>
 struct TuplePrinter;
-struct Debug {
+struct debug {
     template <typename T>
-    typename enable_if<!is_printable<T>::value, Debug &>::type operator<<(
-            const T &x) {
+    typename enable_if<!is_printable<T>::value, debug &>::type operator<<(
+        const T &x) {
         int i = 0;
         for (auto it = begin(x); it != end(x); ++it)
-            *this << "[" << i++ << " : " << *it << "] ";
+            *this << "[" << i++ << ": " << *it << "] ";
         return *this;
     }
     template <typename T>
-    typename enable_if<is_printable<T>::value, Debug &>::type operator<<(
-            const T &x) {
+    typename enable_if<is_printable<T>::value, debug &>::type operator<<(
+        const T &x) {
         cout << x;
         return *this;
     }
-    template <typename T1, typename T2> // pair-printer
-    Debug &operator<<(const pair<T1, T2> &p) {
+    template <typename T1, typename T2>  // pair-printer
+    debug &operator<<(const pair<T1, T2> &p) {
         *this << "{" << p.first << ", " << p.second << "}";
         return *this;
     }
     template <typename... Args>
-    Debug &operator<<(const tuple<Args...> &t) {
+    debug &operator<<(const tuple<Args...> &t) {
         cout << "(";
         TuplePrinter<decltype(t), sizeof...(Args) - 1>::print(t);
         cout << ")";
         return *this;
     }
-} debug;
+    ~debug() { cout << endl; }
+#else
+struct debug {
+    template <typename T>
+    debug &operator<<(const T &foo) {
+        return *this;
+    }
+#endif
+};
 template <typename Tuple, size_t N>
 struct TuplePrinter {
     static void print(const Tuple &t) {
         TuplePrinter<Tuple, N - 1>::print(t);
-        debug << ", " << get<N>(t);
+        debug() << get<N>(t);
     }
 };
 template <typename Tuple>
 struct TuplePrinter<Tuple, 0> {
-    static void print(const Tuple &t) {
-        debug << get<0>(t);
-    }
+    static void print(const Tuple &t) { debug() << get<0>(t); }
 };
-#define dbg(x) do { debug << #x << " -> " << (x) << '\n'; } while (0)
-#else
-#define dbg(x) do {} while (0)
+#define name(x) "[" #x ": " << x << "] "
+template <typename T>
+void print2d(const vector<vector<T>> &v) {
+#ifdef LOCAL
+    for (int i = 0; i < v.size(); ++i) {
+        cout << i << ": ";
+        debug() << name(v[i]);
+    }
 #endif
+}
 ```
 
 ### 对拍相关
@@ -2640,18 +2653,18 @@ int r(int s, int e) { return uniform_int_distribution<int>(s, e)(rng); }
 // 对拍
 @echo off
 :loop
-    data > .\cmake-build-debug\input.txt
-    main < .\cmake-build-debug\input.txt > .\cmake-build-debug\output.txt
-    test < .\cmake-build-debug\input.txt > .\cmake-build-debug\answer.txt
-    fc .\cmake-build-debug\output.txt .\cmake-build-debug\answer.txt > nul
+    data > input.txt
+    main < input.txt > output.txt
+    test < input.txt > answer.txt
+    fc output.txt answer.txt > nul
 if not errorlevel 1 goto loop
 
 // checker
 @echo off
 :loop
-    data > .\cmake-build-debug\input.txt
-    main < .\cmake-build-debug\input.txt > .\cmake-build-debug\output.txt
-    test < .\cmake-build-debug\output.txt
+    data > input.txt
+    main < input.txt > output.txt
+    test < output.txt
 if not errorlevel 1 goto loop
 ```
 
