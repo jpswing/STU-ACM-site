@@ -1751,9 +1751,9 @@ LCP定理：设$i<j$，则$LCP(i,j)=\min \{{LCP(k-1,k)\mid i+1\leq k\leq j}\}$
 struct SuffixArray {
     int n;
     int arr[N];
-    int sa[N];
-    int rank[N];
-    int lcp[N]; // LCP between sa[i] and sa[i-1]
+    int sa[N]; // 1 ~ n
+    int rank[N]; // 0 ~ n - 1
+    int lcp[N]; // LCP between sa[i] and sa[i-1]，1 ~ n
     int t1[N], t2[N], cnt[N];
 
     void init (const string &s) {
@@ -1781,7 +1781,7 @@ struct SuffixArray {
             // 按照主关键字进行排序
             for (int i = 0; i < m; i++) cnt[i] = 0;
             for (int i = 0; i < n; i++) ++cnt[x[y[i]]];
-            for (int i = 0; i < m; i++) cnt[i] += cnt[i - 1];
+            for (int i = 1; i < m; i++) cnt[i] += cnt[i - 1];
             for (int i = n - 1; i >= 0; i--) sa[--cnt[x[y[i]]]] = y[i];
             swap(x, y);
 
@@ -2042,9 +2042,9 @@ pair<int, int> ans[N]; // 离散后的值对原值的映射
 int cnt; // 内存池的指针
 int roots[N]; // 可持久化线段树
 
-int query(int l, int r, int x, int y, int k) {
+int query(int l, int r, int x, int y, int k) {  // x, y 是权值
 	if (x == y) return x;
-	int dif = (pool[pool[r].l].cnt - pool[pool[l].l].cnt); // 原序列[l,r]区间中的该节点元素个数
+	int dif = (pool[pool[r].l].cnt - pool[pool[l].l].cnt); // 左节点元素个数差
 	int h = (x + y) >> 1;
 	if (k <= dif) return query(pool[l].l, pool[r].l, x, h, k); // 说明第k小的值在左子树
 	return query(pool[l].r, pool[r].r, h + 1, y, k - dif); // 否则在右子树，此时k要减去dif
@@ -2666,6 +2666,11 @@ if not errorlevel 1 goto loop
     main < input.txt > output.txt
     test < output.txt
 if not errorlevel 1 goto loop
+
+while true; do
+    ./gen > in
+    diff -w <(./sol < in) <(./test < in) || break
+done
 ```
 
 #### 树数据生成
